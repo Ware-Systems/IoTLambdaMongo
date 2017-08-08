@@ -1,0 +1,22 @@
+{
+  "name": "mylamp-iot-package",
+  "version": "1.0.0",
+  "description": "My Lamp IOT Node.js package",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitinware/IoTLambdaMongo.git"
+  },
+  "author": "Nitin Ware",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nitinware/IoTLambdaMongo/issues"
+  },
+  "homepage": "https://github.com/nitinware/IoTLambdaMongo#readme",
+  "dependencies": {
+    "mongodb": "^2.2.30"
+  }
+}
