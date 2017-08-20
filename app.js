@@ -31,9 +31,9 @@ function processEvent(event, context, callback) {
     console.log('Calling MongoDB Atlas from AWS Lambda with event: ' + JSON.stringify(event));
     var jsonContents = JSON.parse(JSON.stringify(event));
 
-    var lampObject = new MyLamp(jsonContents.state.reported.serialNumber, jsonContents.state.reported.status);
+    var tempSensorObject = new TempreatureSensor(jsonContents.state.reported.serialNumber, jsonContents.state.reported.status);
 
-    var lampJsonObject = JSON.parse(JSON.stringify(lampObject));
+    var tempSensorJsonObject = JSON.parse(JSON.stringify(tempSensorObject));
 
     //the following line is critical for performance reasons to allow re-use of database connections across calls to this Lambda function and avoid closing the database connection. The first call to this lambda function takes about 5 seconds to complete, while subsequent, close calls will only take a few hundred milliseconds.
     context.callbackWaitsForEmptyEventLoop = false;
@@ -41,7 +41,7 @@ function processEvent(event, context, callback) {
     try {
         //testing if the database connection exists and is connected to Atlas so we can try to re-use it
         if (cachedDb && cachedDb.serverConfig.isConnected()) {
-            createDoc(cachedDb, lampJsonObject, callback);
+            createDoc(cachedDb, tempSensorJsonObject, callback);
         }
         else {
             //some performance penalty might be incurred when running that database connection initialization code
@@ -52,7 +52,7 @@ function processEvent(event, context, callback) {
                     process.exit(1)
                 }
                 cachedDb = db;
-                return createDoc(db, lampJsonObject, callback);
+                return createDoc(db, tempSensorJsonObject, callback);
             });            
         }
     }
@@ -62,19 +62,22 @@ function processEvent(event, context, callback) {
 
 }
 
-function MyLamp(serialNumber, status) {
-    this.serialNumber = serialNumber;
-    this.status = status;
+function TempreatureSensor(sensorID, sensorName, sensorState, tempreature) {
+    this.sensorID = sensorID;
+    this.sensorName = sensorName;
+    this.sensorState = sensorState;
+    this.tempreature = tempreature;
+    this.lastModifiedDate = new Date();
 }
 
 function createDoc(db, json, callback) {
-    db.collection('mylamp').insertOne(json, function (err, result) {
+    db.collection('TempreatureSensor').insertOne(json, function (err, result) {
         if (err != null) {
             console.error("an error occurred in createDoc", err);
             callback(null, JSON.stringify(err));
         }
         else {
-            var message = `Kudos! You just created an entry into the restaurants collection with id: ${result.insertedId}`;
+            var message = `Kudos! You just created an entry into the TempreatureSensor collection with id: ${result.insertedId}`;
             console.log(message);
             callback(null, message);
         }
