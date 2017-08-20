@@ -32,7 +32,7 @@ function processEvent(event, context, callback) {
     var sensorArr = JSON.parse(JSON.stringify(event));
     console.log(sensorArr);
     for (var sensor in sensorArr) {
-        console.log(i);
+        console.log(sensor);
         var tempSensorObject = new TempreatureSensor(sensor.sensorID, sensor.sensorName, sensor.sensorState, sensor.tempreature);
 
         var tempSensorJsonObject = JSON.parse(JSON.stringify(tempSensorObject));
