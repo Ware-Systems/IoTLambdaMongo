@@ -29,37 +29,39 @@ exports.handler = (event, context, callback) => {
 
 function processEvent(event, context, callback) {
     console.log('Calling MongoDB Atlas from AWS Lambda with event: ' + JSON.stringify(event));
-    var jsonContents = JSON.parse(JSON.stringify(event));
+    var sensorArr = JSON.parse(JSON.stringify(event));
+    console.log(sensorArr);
+    for (var sensor in sensorArr) {
+        console.log(i);
+        var tempSensorObject = new TempreatureSensor(sensor.sensorID, sensor.sensorName, sensor.sensorState, sensor.tempreature);
 
-    var tempSensorObject = new TempreatureSensor(jsonContents.state.reported.serialNumber, jsonContents.state.reported.status);
+        var tempSensorJsonObject = JSON.parse(JSON.stringify(tempSensorObject));
 
-    var tempSensorJsonObject = JSON.parse(JSON.stringify(tempSensorObject));
-
-    //the following line is critical for performance reasons to allow re-use of database connections across calls to this Lambda function and avoid closing the database connection. The first call to this lambda function takes about 5 seconds to complete, while subsequent, close calls will only take a few hundred milliseconds.
-    context.callbackWaitsForEmptyEventLoop = false;
-    
-    try {
-        //testing if the database connection exists and is connected to Atlas so we can try to re-use it
-        if (cachedDb && cachedDb.serverConfig.isConnected()) {
-            createDoc(cachedDb, tempSensorJsonObject, callback);
+        //the following line is critical for performance reasons to allow re-use of database connections across calls to this Lambda function and avoid closing the database connection. The first call to this lambda function takes about 5 seconds to complete, while subsequent, close calls will only take a few hundred milliseconds.
+        context.callbackWaitsForEmptyEventLoop = false;
+        
+        try {
+            //testing if the database connection exists and is connected to Atlas so we can try to re-use it
+            if (cachedDb && cachedDb.serverConfig.isConnected()) {
+                createDoc(cachedDb, tempSensorJsonObject, callback);
+            }
+            else {
+                //some performance penalty might be incurred when running that database connection initialization code
+                console.log(`=> connecting to database ${atlas_connection_uri}`);
+                MongoClient.connect(atlas_connection_uri, function (err, db) {
+                    if (err) {
+                        console.log(`the error is ${err}.`, err)
+                        process.exit(1)
+                    }
+                    cachedDb = db;
+                    return createDoc(db, tempSensorJsonObject, callback);
+                });            
+            }
         }
-        else {
-            //some performance penalty might be incurred when running that database connection initialization code
-            console.log(`=> connecting to database ${atlas_connection_uri}`);
-            MongoClient.connect(atlas_connection_uri, function (err, db) {
-                if (err) {
-                    console.log(`the error is ${err}.`, err)
-                    process.exit(1)
-                }
-                cachedDb = db;
-                return createDoc(db, tempSensorJsonObject, callback);
-            });            
+        catch (err) {
+            console.error('an error occurred', err);
         }
     }
-    catch (err) {
-        console.error('an error occurred', err);
-    }
-
 }
 
 function TempreatureSensor(sensorID, sensorName, sensorState, tempreature) {

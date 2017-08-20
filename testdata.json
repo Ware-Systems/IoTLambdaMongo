@@ -1,8 +1,10 @@
 {
   "state": {
     "reported": {
-      "serialNumber": "12345",
-      "status": "ON"
+	    "sensors": [
+        { "sensor":"ID001", "sensorName" : "Sensor_NYC", "sensorState" : 1, "tempreature" : 75},
+        { "sensor":"ID002", "sensorName" : "Sensor_SFO", "sensorState" : 1, "tempreature" : 85}
+    ]
     }
   }
 }
